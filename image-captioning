@@ -1,0 +1,29 @@
+import torch
+from PIL import Image
+from transformers import BlipProcessor, BlipForConditionalGeneration
+import io
+from google.colab import files
+
+processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
+model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
+
+def preprocess_image(image):
+    img = Image.open(io.BytesIO(image)).convert("RGB")
+    return processor(images=img, return_tensors="pt")
+
+def generate_caption(image):
+    inputs = preprocess_image(image)
+    out = model.generate(**inputs)
+    caption = processor.decode(out[0], skip_special_tokens=True)
+    return caption
+
+def main():
+    while True:
+        print("Upload an image to generate a caption:")
+        uploaded = files.upload()
+        image = next(iter(uploaded.values()))
+        caption = generate_caption(image)
+        print(f"\n\n\n\nGenerated Caption:\n{caption}\n\n\n\n")
+        print("\n\n")
+
+main()
